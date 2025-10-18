@@ -1,111 +1,135 @@
-const schedule = require('node-schedule');
-const chalk = require('chalk');
-const moment = require('moment-timezone');
+const axios = require("axios");
+const moment = require("moment-timezone");
+require("moment/locale/bn");
 
 module.exports.config = {
-    name: 'autosent',
-    version: '11.1.0',
-    hasPermssion: 0,
-    credits: 'Mohammad Akash',
-    description: 'Automatically sends fun & entertaining styled messages (BD Time)',
-    commandCategory: 'group messenger',
-    usages: '[]',
-    cooldowns: 3
+  name: "autotime",
+  version: "1.4.1",
+  hasPermssion: 0,
+  credits: "Sairul Islam (modified)",
+  description: "Auto time hourly update (Bangla, English & Hijri, Default ON)",
+  commandCategory: "Utility",
+  cooldowns: 5,
 };
 
-// মেসেজ লিস্ট (ঘন্টা অনুযায়ী)
-const messages = [
-    '🌙 এত রাত কিসের জন্য জাগছিস? 😴✨',
-    '⏰ Mobile বন্ধ করে ঘুমো 😏🛌',
-    '😵‍💫 এত সাহস দেখানোর সময় নয়, বিশ্রাম নাও 😴',
-    '🛌 সবাই ঘুমাচ্ছে, আর তুই জাগছিস? 😼',
-    '🌅 উঠে fresh হও, কিছু light exercise করো 🌸💪',
-    '🕌 নামাজ বা একটু stretch করে নাও 🙏✨',
-    '☀️ Rise and shine! দিনটা সুন্দর শুরু কর 💪😎',
-    '🪥 দাঁত ব্রাশ করো আর breakfast খাও 🥞🍳',
-    '🍳 Mobile পরে রাখো আর energy নিয়ে দিন শুরু কর 📵',
-    '😎 ক্লাস বা কাজ শুরু করো, সময় নষ্ট করা বন্ধ কর 🕒',
-    '📚 একটু focus করার সময়, distractions এড়িয়ে যাও 😏',
-    '😇 Playtime শেষ, study mode on 🕹️📖',
-    '🌞 Good Afternoon! একটু fresh হও 🙌💖',
-    '🍛 Lunch খাও, energy refill কর 😋',
-    '😎 Chill time, mobile কম ব্যবহার কর 📵',
-    '😴 Nap নিতে পারো, refresh হও 😌',
-    '🥵 গরম পড়েছে, পানি খাও 💦',
-    '😅 একটু হাসি ছড়িয়ে দিন, mood fresh রাখো 😆',
-    '🌆 Hands washed? Relax এবং chill করো 👐💦',
-    '📚 পড়াশোনা চলছে তো? Concentrate করো 😏',
-    '🔥 মজা করো, তবে বেশি disturb কোরো না 😎',
-    '😘 Dinner খেয়েছো? খেয়ে নাও 🍽️❤️',
-    '😴 Mobile বন্ধ করে বিশ্রাম নাও 📵',
-    '🛌 Relax! আগামি দিনের জন্য energy জমাও 😌'
+const banglaMonths = [
+  "বৈশাখ", "জ্যৈষ্ঠ", "আষাঢ়", "শ্রাবণ", "ভাদ্র", "আশ্বিন",
+  "কার্তিক", "অগ্রহায়ণ", "পৌষ", "মাঘ", "ফাল্গুন", "চৈত্র"
 ];
 
-// extra motivational / fun lines
-const extraLines = [
-    "💡 মনে রেখো: ঘুম শরীর আর মনের জন্য ভীষণ জরুরি।",
-    "🔥 আজকের কাজ কালকে ফেলে রেখো না!",
-    "🌸 হাসি হলো শ্রেষ্ঠ ওষুধ। একটু হাসো তো! 😁",
-    "💪 ছোট ছোট কাজ মিলে বড় সাফল্য হয়।",
-    "📱 মোবাইল নয়, নিজের স্বপ্নে Focus করো।",
-    "🌎 পৃথিবীটা সুন্দর — একটু চোখ তুলে তাকাও!",
-    "✨ তোমার হাসি কারো পুরো দিনকে সুন্দর করতে পারে।",
-    "😎 কাজের মাঝে মজা খুঁজে নিতে শিখো।",
-    "💖 নিজের প্রতি Positive থাকো।",
-    "🎯 আজকের লক্ষ্য পূর্ণ করো, কালকে আবার নতুন শুরু।"
+const banglaDays = [
+  "রবিবার", "সোমবার", "মঙ্গলবার", "বুধবার",
+  "বৃহস্পতিবার", "শুক্রবার", "শনিবার"
 ];
 
-// Function to determine Bengali time period
-function getBengaliPeriod(hour) {
-    if (hour >= 4 && hour < 12) return 'সকাল';
-    if (hour >= 12 && hour < 15) return 'দুপুর';
-    if (hour >= 15 && hour < 18) return 'বিকেল';
-    return 'রাত';
+// একটি map যাতে থ্রেড마다 একবারই টাইমার চলবে
+let timers = {};
+
+/** Convert English digits to Bangla digits */
+function toBanglaNumber(str) {
+  const map = { "0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯" };
+  return str.toString().split("").map(c => map[c] !== undefined ? map[c] : c).join("");
 }
 
-module.exports.onLoad = ({ api }) => {
-    console.log(chalk.bold.hex("#00c300")("============ AUTOSENT COMMAND LOADED (BD TIME) ============"));
+async function sendTimeUpdate(api, threadID) {
+  try {
+    const now = moment().tz("Asia/Dhaka");
 
-    for (let h = 0; h < 24; h++) {
-        const rule = new schedule.RecurrenceRule();
-        rule.tz = 'Asia/Dhaka';
-        rule.hour = h;
-        rule.minute = 0;
+    const engDate = now.format("dddd, DD MMMM YYYY");
+    const engTime = now.format("hh:mm A");
 
-        schedule.scheduleJob(rule, () => {
-            if (!global.data?.allThreadID) return;
+    const bnDayName = banglaDays[now.day()];
+    const bnDate = now.date();
+    const bnMonth = banglaMonths[now.month()];
+    const bnYear = now.year() - 593;  // বঙ্গাব্দ বছর
+    // Bangla time (hh A) but convert numerals
+    const bnTime = now.locale("bn").format("hh A");
+    const bnTimeBangla = toBanglaNumber(bnTime);
 
-            const nowMoment = moment().tz('Asia/Dhaka');
-            const hour = nowMoment.hour();
-            const minute = nowMoment.format('mm');
-            const period = getBengaliPeriod(hour);
+    const hour = now.hour();
+    let bnTimePeriod;
+    if (hour >= 4 && hour < 12) bnTimePeriod = "সকাল";
+    else if (hour >= 12 && hour < 17) bnTimePeriod = "দুপুর";
+    else if (hour >= 17 && hour < 20) bnTimePeriod = "বিকাল";
+    else bnTimePeriod = "রাত";
 
-            const formattedTime = `${period} ${hour % 12 === 0 ? 12 : hour % 12}:${minute} ${nowMoment.format('A')}`;
-
-            const message = messages[h] || '⏰ সময় চলে যাচ্ছে! কিছু productive করো ✨';
-            const extra = extraLines[Math.floor(Math.random() * extraLines.length)];
-
-            const finalMessage =
-`━━━━━━━━━━━━━━━━━━━━━
-🕒 এখন সময়: ${formattedTime}
-${message}
-
-${extra}
-━━━━━━━━━━━━━━━━━━━━━`;
-
-            global.data.allThreadID.forEach(threadID => {
-                api.sendMessage(finalMessage, threadID, (error) => {
-                    if (error) {
-                        console.error(`Failed to send message to ${threadID}:`, error);
-                    }
-                });
-            });
-
-            console.log(chalk.hex("#00FFFF")(`Scheduled (BDT): ${formattedTime} => ${finalMessage}`));
-        });
+    const today = now.format("DD-MM-YYYY");
+    let hijriDay, hijriMonth, hijriYear;
+    try {
+      const res = await axios.get(`http://api.aladhan.com/v1/gToH?date=${today}`);
+      if (res.data && res.data.data && res.data.data.hijri) {
+        const h = res.data.data.hijri;
+        hijriDay = toBanglaNumber(h.day);
+        // h.month.ar is Arabic month name (in Arabic script). যদি তুমি ইংরেজি চান তাহলে h.month.en
+        hijriMonth = h.month.en || h.month.ar;
+        hijriYear = toBanglaNumber(h.year);
+      } else {
+        hijriDay = hijriMonth = hijriYear = "N/A";
+      }
+    } catch (err) {
+      hijriDay = hijriMonth = hijriYear = "Error";
+      console.error("Hijri API Error:", err.message);
     }
+
+    const message = `
+╔═❖═❖═❖═❖═❖═❖═╗
+ ⏰ 𝗧𝗜𝗠𝗘 & 𝗗𝗔𝗧𝗘 ⏰
+╚═❖═❖═❖═❖═❖═❖═╝
+       ╔═✪═🕒═✪═╗
+          সময়: ${bnTimePeriod} ${bnTimeBangla} টা
+       ╚════════╝
+🗓️ English: ${engDate}
+🗓️ বাংলা: ${bnDayName}, ${toBanglaNumber(bnDate)} ${bnMonth}, ${toBanglaNumber(bnYear)} বঙ্গাব্দ
+🌙 হিজরি: ${hijriDay} ${hijriMonth} ${hijriYear} হিজরি
+🌍 টাইমজোন: Asia/Dhaka
+━━━━━━━━━━━━━━━━━━━━
+✨ আল্লাহর নিকটে বেশি বেশি দোয়া করুন..! 
+🙏 ৫ ওয়াক্ত নামাজ নিয়মিত পড়ুন..!
+🤝 সকলের সাথে সদ্ভাব বজায় রাখুন..!
+━━━━━━━━━━━━━━━━━━━━
+🌸✨🌙🕊️🌼🌿🕌💖🌙🌸✨🌺
+
+🌟 𝐂𝐫𝐞𝐚𝐭𝐨𝐫 ━ 𝐒𝐚𝐢𝐫𝐮𝐥 𝐈𝐬𝐥𝐚𝐦 🌟
+`.trim();
+
+    // পাঠাও মেসেজ
+    api.sendMessage(message, threadID);
+
+  } catch (err) {
+    console.error("AutoTime Error:", err);
+  }
+}
+
+module.exports.onLoad = function ({ api }) {
+  console.log("✅ AutoTime module loaded.");
+
+  // যদি global.data.allThreadIDs থাকে
+  if (global.data && global.data.allThreadIDs) {
+    global.data.allThreadIDs.forEach(threadID => {
+      // যদি ইতিমধ্যে টাইমার সেট করা থাকে, ওভারল্যাপ এড়াও
+      if (timers[threadID]) return;
+
+      const now = moment().tz("Asia/Dhaka");
+      const nextHour = moment(now).add(1, "hour").startOf("hour");
+      const msUntilNextHour = nextHour.diff(now);
+
+      // একটি timeout দিয়ে শুরু করো
+      timers[threadID] = true;
+
+      setTimeout(() => {
+        sendTimeUpdate(api, threadID);
+
+        // এরপর প্রতি ঘন্টায়
+        timers[threadID] = setInterval(() => {
+          sendTimeUpdate(api, threadID);
+        }, 60 * 60 * 1000);
+
+      }, msUntilNextHour);
+    });
+  }
 };
 
-module.exports.run = () => {
-    // Main logic is in onLoad
+module.exports.run = async function ({ api, event }) {
+  // চালিয়ে দাও ম্যানুয়ালি
+  sendTimeUpdate(api, event.threadID);
 };
