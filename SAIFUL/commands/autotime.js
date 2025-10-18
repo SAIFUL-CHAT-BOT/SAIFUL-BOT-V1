@@ -4,9 +4,9 @@ require("moment/locale/bn");
 
 module.exports.config = {
   name: "autotime",
-  version: "1.4.1",
+  version: "1.4.0",
   hasPermssion: 0,
-  credits: "Sairul Islam (modified)",
+  credits: "Sairul Islam",
   description: "Auto time hourly update (Bangla, English & Hijri, Default ON)",
   commandCategory: "Utility",
   cooldowns: 5,
@@ -22,15 +22,7 @@ const banglaDays = [
   "বৃহস্পতিবার", "শুক্রবার", "শনিবার"
 ];
 
-// একটি map যাতে থ্রেড마다 একবারই টাইমার চলবে
-let timers = {};
-
-/** Convert English digits to Bangla digits */
-function toBanglaNumber(str) {
-  const map = { "0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯" };
-  return str.toString().split("").map(c => map[c] !== undefined ? map[c] : c).join("");
-}
-
+// ==================== AutoTime Function ====================
 async function sendTimeUpdate(api, threadID) {
   try {
     const now = moment().tz("Asia/Dhaka");
@@ -41,10 +33,8 @@ async function sendTimeUpdate(api, threadID) {
     const bnDayName = banglaDays[now.day()];
     const bnDate = now.date();
     const bnMonth = banglaMonths[now.month()];
-    const bnYear = now.year() - 593;  // বঙ্গাব্দ বছর
-    // Bangla time (hh A) but convert numerals
+    const bnYear = now.year() - 593;
     const bnTime = now.locale("bn").format("hh A");
-    const bnTimeBangla = toBanglaNumber(bnTime);
 
     const hour = now.hour();
     let bnTimePeriod;
@@ -57,12 +47,11 @@ async function sendTimeUpdate(api, threadID) {
     let hijriDay, hijriMonth, hijriYear;
     try {
       const res = await axios.get(`http://api.aladhan.com/v1/gToH?date=${today}`);
-      if (res.data && res.data.data && res.data.data.hijri) {
-        const h = res.data.data.hijri;
-        hijriDay = toBanglaNumber(h.day);
-        // h.month.ar is Arabic month name (in Arabic script). যদি তুমি ইংরেজি চান তাহলে h.month.en
-        hijriMonth = h.month.en || h.month.ar;
-        hijriYear = toBanglaNumber(h.year);
+      if (res.data?.data?.hijri) {
+        const hijri = res.data.data.hijri;
+        hijriDay = hijri.day;
+        hijriMonth = hijri.month.ar;
+        hijriYear = hijri.year;
       } else {
         hijriDay = hijriMonth = hijriYear = "N/A";
       }
@@ -76,12 +65,12 @@ async function sendTimeUpdate(api, threadID) {
  ⏰ 𝗧𝗜𝗠𝗘 & 𝗗𝗔𝗧𝗘 ⏰
 ╚═❖═❖═❖═❖═❖═❖═╝
        ╔═✪═🕒═✪═╗
-          সময়: ${bnTimePeriod} ${bnTimeBangla} টা
+          সময়: ${bnTimePeriod} ${bnTime} টা
        ╚════════╝
 🗓️ English: ${engDate}
-🗓️ বাংলা: ${bnDayName}, ${toBanglaNumber(bnDate)} ${bnMonth}, ${toBanglaNumber(bnYear)} বঙ্গাব্দ
+🗓️ বাংলা: ${bnDayName}, ${bnDate} ${bnMonth}, ${bnYear} বঙ্গাব্দ
 🌙 হিজরি: ${hijriDay} ${hijriMonth} ${hijriYear} হিজরি
-🌍 টাইমজোন: Asia/Dhaka
+🌍 টাইমজোন: Asia/Dhaka 
 ━━━━━━━━━━━━━━━━━━━━
 ✨ আল্লাহর নিকটে বেশি বেশি দোয়া করুন..! 
 🙏 ৫ ওয়াক্ত নামাজ নিয়মিত পড়ুন..!
@@ -89,47 +78,38 @@ async function sendTimeUpdate(api, threadID) {
 ━━━━━━━━━━━━━━━━━━━━
 🌸✨🌙🕊️🌼🌿🕌💖🌙🌸✨🌺
 
-🌟 𝐂𝐫𝐞𝐚𝐭𝐨𝐫 ━ 𝐒𝐚𝐢𝐫𝐮𝐥 𝐈𝐬𝐥𝐚𝐦 🌟
-`.trim();
+🌟 𝐂𝐫𝐞𝐚𝐭𝐨𝐫 ━ 𝐒𝐚𝐢𝐫𝐮𝐥 𝐈𝐬𝐥𝐚𝐦 🌟`;
 
-    // পাঠাও মেসেজ
-    api.sendMessage(message, threadID);
+    api.sendMessage(message.trim(), threadID);
 
   } catch (err) {
     console.error("AutoTime Error:", err);
   }
 }
 
+// ==================== Default Auto Start ====================
 module.exports.onLoad = function ({ api }) {
-  console.log("✅ AutoTime module loaded.");
+  console.log("✅ AutoTime system loaded and will run hourly by default!");
 
-  // যদি global.data.allThreadIDs থাকে
-  if (global.data && global.data.allThreadIDs) {
+  if (global.data.allThreadIDs) {
     global.data.allThreadIDs.forEach(threadID => {
-      // যদি ইতিমধ্যে টাইমার সেট করা থাকে, ওভারল্যাপ এড়াও
-      if (timers[threadID]) return;
-
       const now = moment().tz("Asia/Dhaka");
       const nextHour = moment(now).add(1, "hour").startOf("hour");
       const msUntilNextHour = nextHour.diff(now);
 
-      // একটি timeout দিয়ে শুরু করো
-      timers[threadID] = true;
-
       setTimeout(() => {
         sendTimeUpdate(api, threadID);
-
-        // এরপর প্রতি ঘন্টায়
-        timers[threadID] = setInterval(() => {
-          sendTimeUpdate(api, threadID);
-        }, 60 * 60 * 1000);
-
+        setInterval(() => sendTimeUpdate(api, threadID), 60 * 60 * 1000);
       }, msUntilNextHour);
     });
   }
 };
 
+// ==================== Command Handler ====================
 module.exports.run = async function ({ api, event }) {
-  // চালিয়ে দাও ম্যানুয়ালি
-  sendTimeUpdate(api, event.threadID);
+  return api.sendMessage(
+    "🕒 𝗔𝘂𝘁𝗼𝗧𝗶𝗺𝗲 সিস্টেম ডিফল্টভাবে অন আছে!\nপ্রতি ঘন্টায় স্বয়ংক্রিয়ভাবে সময় পাঠানো হবে ⏰",
+    event.threadID,
+    event.messageID
+  );
 };
