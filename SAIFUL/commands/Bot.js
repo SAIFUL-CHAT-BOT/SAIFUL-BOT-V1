@@ -9,10 +9,10 @@ const apiJsonURL = "https://raw.githubusercontent.com/rummmmna21/rx-api/main/bas
 
 module.exports.config = {
   name: "bot",
-  version: "1.3.0",
+  version: "1.5.0",
   hasPermssion: 0,
   credits: "rX Abdullah + GPT-5",
-  description: "Maria Baby-style chat system with typing effect like baby.js",
+  description: "Maria Baby-style chat system with human-like typing effect",
   commandCategory: "noprefix",
   usages: "bot / @mention",
   cooldowns: 3
@@ -30,17 +30,19 @@ async function getRxAPI() {
   }
 }
 
-// 🔹 Typing Effect Function
-const __callTyping = async (apiObj, threadId, ms = 2000) => {
-  try {
-    const fn = apiObj["sendTypingIndicator"] || apiObj["typing"];
-    if (typeof fn === "function") {
-      await fn.call(apiObj, threadId, true);
-      await new Promise(r => setTimeout(r, ms));
-      await fn.call(apiObj, threadId, false);
-    }
-  } catch {}
-};
+// 🔹 Human-like Typing Function
+async function humanLikeTyping(api, threadID, message, chunkSize = 1, delay = 120) {
+  const sendTyping = api.sendTypingIndicator || api.typing;
+
+  for (let i = 0; i < message.length; i += chunkSize) {
+    if (typeof sendTyping === "function") await sendTyping(threadID, true);
+    const chunk = message.slice(i, i + chunkSize);
+    await api.sendMessage(chunk, threadID);
+    await new Promise(r => setTimeout(r, delay));
+  }
+
+  if (typeof sendTyping === "function") await sendTyping(threadID, false);
+}
 
 // 🔹 Invisible marker for bot message tracking
 const marker = "\u200B";
@@ -81,8 +83,7 @@ module.exports.handleEvent = async function({ api, event, Users }) {
 
 ╰──────•◈•──────╯`;
 
-    await __callTyping(api, threadID, 2500);
-    return api.sendMessage(withMarker(message), threadID, messageID);
+    return humanLikeTyping(api, threadID, withMarker(message));
   }
 
   // ─── 2️⃣ When someone replies to bot message ───
@@ -99,8 +100,6 @@ module.exports.handleEvent = async function({ api, event, Users }) {
       return api.sendMessage("❌ Failed to load RX API.", threadID, messageID);
 
     try {
-      await __callTyping(api, threadID, 2500);
-
       const res = await axios.get(
         `${rxAPI}/simsimi?text=${encodeURIComponent(replyText)}&senderName=${encodeURIComponent(name)}`
       );
@@ -110,10 +109,7 @@ module.exports.handleEvent = async function({ api, event, Users }) {
         : [res.data.response];
 
       for (const reply of responses) {
-        await __callTyping(api, threadID, 2000);
-        await new Promise(resolve => {
-          api.sendMessage(withMarker(reply), threadID, () => resolve(), messageID);
-        });
+        await humanLikeTyping(api, threadID, withMarker(reply));
       }
     } catch (err) {
       console.error(err);
