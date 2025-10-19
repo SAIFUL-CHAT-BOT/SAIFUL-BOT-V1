@@ -1,20 +1,25 @@
+/* WEBSITE LINK - https://rx-baby.netlify.app/
+   AUTHOR - rX + Modified by GPT-5
+*/
+
 const axios = require("axios");
 const fs = global.nodemodule["fs-extra"];
 
 const apiJsonURL = "https://raw.githubusercontent.com/rummmmna21/rx-api/main/baseApiUrl.json";
 
+// 🔧 Config
 module.exports.config = {
-  name: "obot",
-  version: "1.1.0",
+  name: "bot",
+  version: "2.0.0",
   hasPermssion: 0,
-  credits: "𝐫𝐗",
-  description: "Maria Baby-style reply system (trigger by 'bot' or specific mention)",
+  credits: "rX + Modified by GPT-5",
+  description: "Maria Baby-style reply system with typing effect (triggered by 'bot' or mention)",
   commandCategory: "noprefix",
-  usages: "bot / @Sııƞƞeɽ 倫ッ",
+  usages: "bot / @mention",
   cooldowns: 3
 };
 
-// RX API fetch function
+// 🧠 Fetch RX API
 async function getRxAPI() {
   try {
     const res = await axios.get(apiJsonURL);
@@ -26,21 +31,40 @@ async function getRxAPI() {
   }
 }
 
-// Invisible marker to track bot messages
+// 💬 Typing Effect (like baby.js)
+const __callTyping = async (apiObj, threadId, ms = 2000) => {
+  try {
+    const fn = apiObj["sendTypingIndicator"] || apiObj["typing"];
+    if (typeof fn === "function") {
+      await fn.call(apiObj, threadId, true);
+      await new Promise(r => setTimeout(r, ms));
+      await fn.call(apiObj, threadId, false);
+    } else {
+      const alt = apiObj["sendTyping"] || apiObj["se" + "nd" + "TypingIndicator"];
+      if (typeof alt === "function") {
+        await alt.call(apiObj, true, threadId);
+        await new Promise(r => setTimeout(r, ms));
+        await alt.call(apiObj, false, threadId);
+      }
+    }
+  } catch {}
+};
+
+// 🧩 Invisible Marker (to track bot replies)
 const marker = "\u200B";
 function withMarker(text) {
   return text + marker;
 }
 
-module.exports.handleEvent = async function({ api, event, Users }) {
+// 🧠 Main Event Handler
+module.exports.handleEvent = async function ({ api, event, Users }) {
   const { threadID, messageID, body, senderID, messageReply, mentions } = event;
   if (!body) return;
 
   const name = await Users.getNameUser(senderID);
+  const TARGET_ID = "61560916929379"; // your UID mention trigger
 
-  // ---- Step 1: "bot" trigger or specific UID mention ----
-  const TARGET_ID = "61560916929379";
-
+  // ──────────────── STEP 1: Trigger by "bot" or mention ────────────────
   if (
     body.trim().toLowerCase() === "bot" ||
     (mentions && Object.keys(mentions).includes(TARGET_ID))
@@ -57,8 +81,7 @@ module.exports.handleEvent = async function({ api, event, Users }) {
     ];
     const randReply = replies[Math.floor(Math.random() * replies.length)];
 
-    const message =
-`╭──────•◈•──────╮
+    const message = `╭──────•◈•──────╮
    Hᴇʏ Xᴀɴ I’ᴍ Mᴀʀɪᴀ Bᴀʙʏ✨   
 
  ❄ Dᴇᴀʀ, ${name}
@@ -66,10 +89,11 @@ module.exports.handleEvent = async function({ api, event, Users }) {
 
 ╰──────•◈•──────╯`;
 
+    await __callTyping(api, threadID, 2000);
     return api.sendMessage(withMarker(message), threadID, messageID);
   }
 
-  // ---- Step 2: reply to any bot message triggers RX API ----
+  // ──────────────── STEP 2: Reply to bot message = AI response ────────────────
   if (
     messageReply &&
     messageReply.senderID === api.getCurrentUserID() &&
@@ -82,13 +106,18 @@ module.exports.handleEvent = async function({ api, event, Users }) {
     if (!rxAPI) return api.sendMessage("❌ Failed to load RX API.", threadID, messageID);
 
     try {
+      await __callTyping(api, threadID, 2000);
       const res = await axios.get(
         `${rxAPI}/simsimi?text=${encodeURIComponent(replyText)}&senderName=${encodeURIComponent(name)}`
       );
-      const responses = Array.isArray(res.data.response) ? res.data.response : [res.data.response];
+
+      const responses = Array.isArray(res.data.response)
+        ? res.data.response
+        : [res.data.response];
 
       for (const reply of responses) {
-        await new Promise(resolve => {
+        await new Promise(async resolve => {
+          await __callTyping(api, threadID, 1800);
           api.sendMessage(withMarker(reply), threadID, () => resolve(), messageID);
         });
       }
@@ -99,4 +128,4 @@ module.exports.handleEvent = async function({ api, event, Users }) {
   }
 };
 
-module.exports.run = function() {};
+module.exports.run = function () {};
