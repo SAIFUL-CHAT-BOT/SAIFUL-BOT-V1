@@ -6,8 +6,8 @@ const Canvas = require("canvas");
 module.exports.config = {
   name: "joinnoti",
   version: "2.4.0",
-  credits: "Saiful Islam (Updated)",
-  description: "Welcome system with Bangla captions, adder photo, thanks message & Bot Owner info",
+  credits: "Saiful Islam",
+  description: "Welcome system with Bangla captions, adder photo & thanks message (no time)",
   eventType: ["log:subscribe"],
   dependencies: {
     "canvas": "",
@@ -57,7 +57,7 @@ module.exports.run = async function({ api, event, Users }) {
     fs.writeFileSync(adderAvatarPath, Buffer.from(adderImg));
 
     // 🖼️ ক্যানভাস তৈরি
-    const canvas = Canvas.createCanvas(800, 580);
+    const canvas = Canvas.createCanvas(800, 550);
     const ctx = canvas.getContext("2d");
     const background = await Canvas.loadImage(bgPath);
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
@@ -65,7 +65,7 @@ module.exports.run = async function({ api, event, Users }) {
     // 🎉 নতুন ইউজারের প্রোফাইল
     const avatarSize = 180;
     const avatarX = (canvas.width - avatarSize) / 2;
-    const avatarY = 100;
+    const avatarY = 60; // ⬆️ নতুন মেম্বার প্রোফাইল পিক উপরে তোলা হয়েছে
 
     ctx.beginPath();
     ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 8, 0, Math.PI * 2);
@@ -81,10 +81,10 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
     ctx.restore();
 
-    // 💖 এডার প্রোফাইল (আরও নিচে)
+    // 💖 এডার প্রোফাইল (নিচে, কিন্তু আগের চেয়ে একটু উপরে)
     const adderSize = 110;
     const adderX = (canvas.width - adderSize) / 2;
-    const adderY = 380; // 🔽 আগের চেয়ে নিচে নামানো হলো
+    const adderY = 330; // ⬆️ আগে 390 ছিল, এখন একটু উপরে তোলা হয়েছে
 
     ctx.beginPath();
     ctx.arc(adderX + adderSize / 2, adderY + adderSize / 2, adderSize / 2 + 6, 0, Math.PI * 2);
@@ -104,25 +104,25 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.textAlign = "center";
     ctx.font = "bold 36px Arial";
     ctx.fillStyle = "#FFB6C1";
-    ctx.fillText(userName, canvas.width / 2, avatarY + avatarSize + 50);
+    ctx.fillText(userName, canvas.width / 2, avatarY + avatarSize + 40);
 
     ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#00FFFF";
-    ctx.fillText(groupName, canvas.width / 2, avatarY + avatarSize + 90);
+    ctx.fillText(groupName, canvas.width / 2, avatarY + avatarSize + 80);
 
     ctx.font = "bold 26px Arial";
     ctx.fillStyle = "#FFFF00";
-    ctx.fillText(`মোট সদস্য: ${memberCount}`, canvas.width / 2, avatarY + avatarSize + 130);
+    ctx.fillText(`মোট সদস্য: ${memberCount}`, canvas.width / 2, avatarY + avatarSize + 120);
 
-    // “Added by” নিচে নামানো হলো
     ctx.font = "bold 24px Arial";
     ctx.fillStyle = "#FF69B4";
-    ctx.fillText(`👤 Added by ${adderName}`, canvas.width / 2, adderY + adderSize + 50);
+    ctx.fillText(`👤 Added by ${adderName}`, canvas.width / 2, adderY + adderSize + 40);
 
-    // 🔰 Bot Owner info (ছবির নিচে)
-    ctx.font = "bold 22px Arial";
+    // ⚙️ নিচে ডান পাশে বড় করে Bot Owner
+    ctx.font = "bold 28px Arial";
     ctx.fillStyle = "#00FF00";
-    ctx.fillText(`🤖 Bot Owner: Saiful Islam`, canvas.width / 2, canvas.height - 20);
+    ctx.textAlign = "right";
+    ctx.fillText("👑 Bot Owner: Saiful Islam", canvas.width - 30, canvas.height - 20);
 
     const finalBuffer = canvas.toBuffer();
     fs.writeFileSync(outPath, finalBuffer);
@@ -143,7 +143,7 @@ module.exports.run = async function({ api, event, Users }) {
         body: 
 `🤖 𝐁𝐎𝐓 𝐎𝐍𝐋𝐈𝐍𝐄 🤖
 ━━━━━━━━━━━━━━━━━━
-ধন্যবাদ  💖 @${adderName}  
+ধন্যবাদ 💖 @${adderName}  
 আমাকে গ্রুপে এড করার জন্য 🥰 
 
 আমি এখন তুমাদের সাথে একটিভ আছি 😎  
@@ -161,13 +161,10 @@ module.exports.run = async function({ api, event, Users }) {
 `━━━━━━━━━━━━━━━━━━
 🎉 স্বাগতম @${userName}! 🎉
 
-🏷️ গ্রুপ: ${groupName} 
-
-🔢 তুমি এখন ${memberCount} নম্বর সদস্য
+🏷️ গ্রুপ: ${groupName}  
+🔢 তুমি এখন ${memberCount} নম্বর সদস্য  
 
 👤 এড করেছেন: @${adderName}  
-━━━━━━━━━━━━━━━━━━
-💖 ধন্যবাদ @${adderName} 💖 তোমার কারণে @${userName} এখন আমাদের সাথে!
 ━━━━━━━━━━━━━━━━━━
 ${groupRules}
 ━━━━━━━━━━━━━━━━━━
