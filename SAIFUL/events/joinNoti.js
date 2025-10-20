@@ -33,7 +33,7 @@ module.exports.run = async function({ api, event, Users }) {
   const adderName = (await Users.getNameUser(adderID)) || "Unknown";
 
   // Images
-  const bgURL = "https://drive.google.com/uc?export=download&id=1MFQIjy_mQsvalFF1XjyBKzGvzRqUHO22";
+  const bgURL = "https://i.postimg.cc/rmkVVbsM/r07qxo-R-Download.jpg";
   const avatarURL = `https://graph.facebook.com/${userID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
   const adderAvatarURL = `https://graph.facebook.com/${adderID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
 
@@ -98,7 +98,7 @@ module.exports.run = async function({ api, event, Users }) {
     // মোট সদস্য সংখ্যা
     ctx.font = "bold 26px Arial";
     ctx.fillStyle = "#FFFF00";
-    ctx.fillText(`মোট সদস্য: ${memberCount}`, canvas.width / 2, currentY);
+    ctx.fillText(`Total Members: ${memberCount}`, canvas.width / 2, currentY);
 
     currentY += 60;
 
