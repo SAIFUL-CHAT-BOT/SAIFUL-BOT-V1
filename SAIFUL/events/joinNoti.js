@@ -33,7 +33,7 @@ module.exports.run = async function({ api, event, Users }) {
   const adderName = (await Users.getNameUser(adderID)) || "Unknown";
 
   // ব্যাকগ্রাউন্ড ও প্রোফাইল ছবি লিঙ্ক
-  const bgURL = "https://drive.google.com/uc?export=download&id=1WD5vII_efQ0kveI7jlpXnILnmIyDN6_b";
+  const bgURL = "https://drive.google.com/uc?export=download&id=1MFQIjy_mQsvalFF1XjyBKzGvzRqUHO22";
   const avatarURL = `https://graph.facebook.com/${userID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
   const adderAvatarURL = `https://graph.facebook.com/${adderID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
 
