@@ -5,7 +5,7 @@ const Canvas = require("canvas");
 
 module.exports.config = {
   name: "joinnoti",
-  version: "2.4.0",
+  version: "2.6.0",
   credits: "Saiful Islam",
   description: "Welcome system with Bangla captions, adder photo & thanks message (no time)",
   eventType: ["log:subscribe"],
@@ -62,10 +62,10 @@ module.exports.run = async function({ api, event, Users }) {
     const background = await Canvas.loadImage(bgPath);
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-    // 🎉 নতুন ইউজারের প্রোফাইল
+    // 🎉 নতুন ইউজারের প্রোফাইল (আরও উপরে)
     const avatarSize = 180;
     const avatarX = (canvas.width - avatarSize) / 2;
-    const avatarY = 60; // ⬆️ নতুন মেম্বার প্রোফাইল পিক উপরে তোলা হয়েছে
+    const avatarY = 20; // 🔼 উপরে
 
     ctx.beginPath();
     ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 8, 0, Math.PI * 2);
@@ -81,10 +81,24 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
     ctx.restore();
 
-    // 💖 এডার প্রোফাইল (নিচে, কিন্তু আগের চেয়ে একটু উপরে)
+    // ✍️ নতুন মেম্বারের নাম, গ্রুপ নাম, মোট সদস্য
+    ctx.textAlign = "center";
+    ctx.font = "bold 36px Arial";
+    ctx.fillStyle = "#FFB6C1";
+    ctx.fillText(userName, canvas.width / 2, avatarY + avatarSize + 20);
+
+    ctx.font = "bold 30px Arial";
+    ctx.fillStyle = "#00FFFF";
+    ctx.fillText(groupName, canvas.width / 2, avatarY + avatarSize + 60);
+
+    ctx.font = "bold 26px Arial";
+    ctx.fillStyle = "#FFFF00";
+    ctx.fillText(`মোট সদস্য: ${memberCount}`, canvas.width / 2, avatarY + avatarSize + 100);
+
+    // 💖 Added by — এখন মোট সদস্যের ঠিক নিচে
     const adderSize = 110;
     const adderX = (canvas.width - adderSize) / 2;
-    const adderY = 330; // ⬆️ আগে 390 ছিল, এখন একটু উপরে তোলা হয়েছে
+    const adderY = 330; // 🔼 উপরে
 
     ctx.beginPath();
     ctx.arc(adderX + adderSize / 2, adderY + adderSize / 2, adderSize / 2 + 6, 0, Math.PI * 2);
@@ -100,35 +114,21 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.drawImage(adderAvatar, adderX, adderY, adderSize, adderSize);
     ctx.restore();
 
-    // টেক্সট
-    ctx.textAlign = "center";
-    ctx.font = "bold 36px Arial";
-    ctx.fillStyle = "#FFB6C1";
-    ctx.fillText(userName, canvas.width / 2, avatarY + avatarSize + 40);
-
-    ctx.font = "bold 30px Arial";
-    ctx.fillStyle = "#00FFFF";
-    ctx.fillText(groupName, canvas.width / 2, avatarY + avatarSize + 80);
-
-    ctx.font = "bold 26px Arial";
-    ctx.fillStyle = "#FFFF00";
-    ctx.fillText(`মোট সদস্য: ${memberCount}`, canvas.width / 2, avatarY + avatarSize + 120);
-
     ctx.font = "bold 24px Arial";
     ctx.fillStyle = "#FF69B4";
-    ctx.fillText(`👤 Added by ${adderName}`, canvas.width / 2, adderY + adderSize + 40);
+    ctx.fillText(`👤 Added by ${adderName}`, canvas.width / 2, avatarY + avatarSize + 140);
 
     // ⚙️ নিচে ডান পাশে বড় করে Bot Owner
-    ctx.font = "bold 28px Arial";
+    ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#00FF00";
     ctx.textAlign = "right";
-    ctx.fillText("👑 Bot Owner: Saiful Islam", canvas.width - 30, canvas.height - 20);
+    ctx.fillText("👑 Bot Owner: Saiful Islam", canvas.width - 30, canvas.height - 25);
 
     const finalBuffer = canvas.toBuffer();
     fs.writeFileSync(outPath, finalBuffer);
 
     // 📜 গ্রুপ রুলস
-    const groupRules = 
+    const groupRules =
 `📜 𝗚𝗥𝗢𝗨𝗣 𝗥𝗨𝗟𝗘𝗦 📜
 ১️⃣ সবাইকে সম্মান করবে 👥  
 ২️⃣ স্প্যাম বা লিংক দেওয়া নিষেধ 🚫  
@@ -140,11 +140,11 @@ module.exports.run = async function({ api, event, Users }) {
 
     if (userID == botID) {
       message = {
-        body: 
+        body:
 `🤖 𝐁𝐎𝐓 𝐎𝐍𝐋𝐈𝐍𝐄 🤖
 ━━━━━━━━━━━━━━━━━━
 ধন্যবাদ 💖 @${adderName}  
-আমাকে গ্রুপে এড করার জন্য 🥰 
+আমাকে গ্রুপে এড করার জন্য 🥰  
 
 আমি এখন তুমাদের সাথে একটিভ আছি 😎  
 
@@ -159,7 +159,7 @@ module.exports.run = async function({ api, event, Users }) {
       message = {
         body:
 `━━━━━━━━━━━━━━━━━━
-🎉 স্বাগতম @${userName}! 🎉
+🎉 স্বাগতম @${userName}! 🎉  
 
 🏷️ গ্রুপ: ${groupName}  
 🔢 তুমি এখন ${memberCount} নম্বর সদস্য  
