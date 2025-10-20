@@ -5,7 +5,7 @@ const Canvas = require("canvas");
 
 module.exports.config = {
   name: "joinnoti",
-  version: "2.3.0",
+  version: "2.3.1", // ভার্সন আপডেট করা হলো
   credits: "Saiful Islam",
   description: "Welcome system with Bangla captions, adder photo & thanks message (no time)",
   eventType: ["log:subscribe"],
@@ -31,6 +31,9 @@ module.exports.run = async function({ api, event, Users }) {
 
   const adderID = event.author;
   const adderName = (await Users.getNameUser(adderID)) || "Unknown";
+  
+  // 👑 বট ওনারের নাম
+  const botOwnerName = "Saiful Islam"; 
 
   // ব্যাকগ্রাউন্ড ও প্রোফাইল ছবি লিঙ্ক
   const bgURL = "https://drive.google.com/uc?export=download&id=1WD5vII_efQ0kveI7jlpXnILnmIyDN6_b";
@@ -113,10 +116,16 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.font = "bold 26px Arial";
     ctx.fillStyle = "#FFFF00";
     ctx.fillText(`মোট সদস্য: ${memberCount}`, canvas.width / 2, avatarY + avatarSize + 130);
+    
+    // 👑 বট ওনারের নাম যোগ করা হলো
+    ctx.font = "bold 22px Arial"; 
+    ctx.fillStyle = "#FF4500";
+    ctx.fillText(`👑 Bot Owner: ${botOwnerName}`, canvas.width / 2, adderY - 20); // এডার ছবির উপরে
 
+    // 👤 এডার নাম: আরও নিচে নামানো হলো
     ctx.font = "bold 24px Arial";
     ctx.fillStyle = "#FF69B4";
-    ctx.fillText(`👤 Added by ${adderName}`, canvas.width / 2, adderY + adderSize + 40);
+    ctx.fillText(`👤 Added by ${adderName}`, canvas.width / 2, adderY + adderSize + 50); // Y-অফসেট 40 থেকে 50 করা হলো
 
     const finalBuffer = canvas.toBuffer();
     fs.writeFileSync(outPath, finalBuffer);
@@ -125,10 +134,10 @@ module.exports.run = async function({ api, event, Users }) {
     const groupRules = 
 `📜 𝗚𝗥𝗢𝗨𝗣 𝗥𝗨𝗟𝗘𝗦 📜
 ১️⃣ সবাইকে সম্মান করবে 👥  
-২️⃣ স্প্যাম বা লিংক দেওয়া নিষেধ 🚫  
+২️⃣ স্প্যাম বা লিংক দেওয়া নিষেধ 🚫  
 ৩️⃣ বাজে ভাষা ব্যবহার করা যাবে না ⚠️  
-৪️⃣ ভুয়া তথ্য বা গুজব নয় ❌  
-৫️⃣ অ্যাডমিনের সিদ্ধান্তই চূড়ান্ত 👑`;
+৪️⃣ ভুয়া তথ্য বা গুজব নয় ❌  
+৫️⃣ অ্যাডমিনের সিদ্ধান্তই চূড়ান্ত 👑`;
 
     let message;
 
@@ -138,15 +147,15 @@ module.exports.run = async function({ api, event, Users }) {
         body: 
 `🤖 𝐁𝐎𝐓 𝐎𝐍𝐋𝐈𝐍𝐄 🤖
 ━━━━━━━━━━━━━━━━━━
-ধন্যবাদ  💖 @${adderName}  
+ধন্যবাদ 💖 @${adderName}  
 আমাকে গ্রুপে এড করার জন্য 🥰 
 
-আমি এখন তুমাদের সাথে  একটিভ আছি 😎  
+আমি এখন তুমাদের সাথে একটিভ আছি 😎  
 
 🛠️ লিখুন: /help — সব কমান্ড দেখতে
 ━━━━━━━━━━━━━━━━━━
 ╔═❖═❖═❖═❖═❖═❖═╗
-👑 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫: 𝐒𝐚𝐢𝐟𝐮𝐥 𝐈𝐬𝐥𝐚𝐦  
+👑 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫: ${botOwnerName}  
 ╚═❖═❖═❖═❖═❖═❖═╝
 `,
         mentions: [{ tag: `@${adderName}`, id: adderID }],
@@ -170,7 +179,7 @@ module.exports.run = async function({ api, event, Users }) {
 ${groupRules}
 ━━━━━━━━━━━━━━━━━━
 ╔═❖═❖═❖═❖═❖═❖═╗
-👑 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫: 𝐒𝐚𝐢𝐟𝐮𝐥 𝐈𝐬𝐥𝐚𝐦  
+👑 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫: ${botOwnerName}  
 ╚═❖═❖═❖═❖═❖═❖═╝`,
         mentions: [
           { tag: `@${userName}`, id: userID },
@@ -184,11 +193,12 @@ ${groupRules}
       fs.unlinkSync(bgPath);
       fs.unlinkSync(avatarPath);
       fs.unlinkSync(adderAvatarPath);
+
       fs.unlinkSync(outPath);
     });
 
   } catch (error) {
     console.error("Joinnoti Error:", error);
-    api.sendMessage("⚙️ দুঃখিত, ওয়েলকাম মডিউলে ত্রুটি ঘটেছে ⚙️", threadID);
+    api.sendMessage("⚙️ দুঃখিত, ওয়েলকাম মডিউলে ত্রুটি ঘটেছে ⚙️", threadID);
   }
 };
