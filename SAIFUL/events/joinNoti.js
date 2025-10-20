@@ -5,9 +5,9 @@ const Canvas = require("canvas");
 
 module.exports.config = {
   name: "joinnoti",
-  version: "2.3.1", // ভার্সন আপডেট করা হলো
-  credits: "Saiful Islam",
-  description: "Welcome system with Bangla captions, adder photo & thanks message (no time)",
+  version: "2.4.0",
+  credits: "Saiful Islam (Updated)",
+  description: "Welcome system with Bangla captions, adder photo, thanks message & Bot Owner info",
   eventType: ["log:subscribe"],
   dependencies: {
     "canvas": "",
@@ -31,9 +31,6 @@ module.exports.run = async function({ api, event, Users }) {
 
   const adderID = event.author;
   const adderName = (await Users.getNameUser(adderID)) || "Unknown";
-  
-  // 👑 বট ওনারের নাম
-  const botOwnerName = "Saiful Islam"; 
 
   // ব্যাকগ্রাউন্ড ও প্রোফাইল ছবি লিঙ্ক
   const bgURL = "https://drive.google.com/uc?export=download&id=1WD5vII_efQ0kveI7jlpXnILnmIyDN6_b";
@@ -60,7 +57,7 @@ module.exports.run = async function({ api, event, Users }) {
     fs.writeFileSync(adderAvatarPath, Buffer.from(adderImg));
 
     // 🖼️ ক্যানভাস তৈরি
-    const canvas = Canvas.createCanvas(800, 550);
+    const canvas = Canvas.createCanvas(800, 580);
     const ctx = canvas.getContext("2d");
     const background = await Canvas.loadImage(bgPath);
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
@@ -84,10 +81,10 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
     ctx.restore();
 
-    // 💖 এডার প্রোফাইল (নিচে)
+    // 💖 এডার প্রোফাইল (আরও নিচে)
     const adderSize = 110;
     const adderX = (canvas.width - adderSize) / 2;
-    const adderY = 350;
+    const adderY = 380; // 🔽 আগের চেয়ে নিচে নামানো হলো
 
     ctx.beginPath();
     ctx.arc(adderX + adderSize / 2, adderY + adderSize / 2, adderSize / 2 + 6, 0, Math.PI * 2);
@@ -116,16 +113,16 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.font = "bold 26px Arial";
     ctx.fillStyle = "#FFFF00";
     ctx.fillText(`মোট সদস্য: ${memberCount}`, canvas.width / 2, avatarY + avatarSize + 130);
-    
-    // 👑 বট ওনারের নাম যোগ করা হলো
-    ctx.font = "bold 22px Arial"; 
-    ctx.fillStyle = "#FF4500";
-    ctx.fillText(`👑 Bot Owner: ${botOwnerName}`, canvas.width / 2, adderY - 20); // এডার ছবির উপরে
 
-    // 👤 এডার নাম: আরও নিচে নামানো হলো
+    // “Added by” নিচে নামানো হলো
     ctx.font = "bold 24px Arial";
     ctx.fillStyle = "#FF69B4";
-    ctx.fillText(`👤 Added by ${adderName}`, canvas.width / 2, adderY + adderSize + 50); // Y-অফসেট 40 থেকে 50 করা হলো
+    ctx.fillText(`👤 Added by ${adderName}`, canvas.width / 2, adderY + adderSize + 50);
+
+    // 🔰 Bot Owner info (ছবির নিচে)
+    ctx.font = "bold 22px Arial";
+    ctx.fillStyle = "#00FF00";
+    ctx.fillText(`🤖 Bot Owner: Saiful Islam`, canvas.width / 2, canvas.height - 20);
 
     const finalBuffer = canvas.toBuffer();
     fs.writeFileSync(outPath, finalBuffer);
@@ -134,35 +131,31 @@ module.exports.run = async function({ api, event, Users }) {
     const groupRules = 
 `📜 𝗚𝗥𝗢𝗨𝗣 𝗥𝗨𝗟𝗘𝗦 📜
 ১️⃣ সবাইকে সম্মান করবে 👥  
-২️⃣ স্প্যাম বা লিংক দেওয়া নিষেধ 🚫  
+২️⃣ স্প্যাম বা লিংক দেওয়া নিষেধ 🚫  
 ৩️⃣ বাজে ভাষা ব্যবহার করা যাবে না ⚠️  
-৪️⃣ ভুয়া তথ্য বা গুজব নয় ❌  
-৫️⃣ অ্যাডমিনের সিদ্ধান্তই চূড়ান্ত 👑`;
+৪️⃣ ভুয়া তথ্য বা গুজব নয় ❌  
+৫️⃣ অ্যাডমিনের সিদ্ধান্তই চূড়ান্ত 👑`;
 
     let message;
 
     if (userID == botID) {
-      // 🤖 বট এড হলে
       message = {
         body: 
 `🤖 𝐁𝐎𝐓 𝐎𝐍𝐋𝐈𝐍𝐄 🤖
 ━━━━━━━━━━━━━━━━━━
-ধন্যবাদ 💖 @${adderName}  
+ধন্যবাদ  💖 @${adderName}  
 আমাকে গ্রুপে এড করার জন্য 🥰 
 
 আমি এখন তুমাদের সাথে একটিভ আছি 😎  
 
 🛠️ লিখুন: /help — সব কমান্ড দেখতে
 ━━━━━━━━━━━━━━━━━━
-╔═❖═❖═❖═❖═❖═❖═╗
-👑 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫: ${botOwnerName}  
-╚═❖═❖═❖═❖═❖═❖═╝
-`,
+👑 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫: 𝐒𝐚𝐢𝐟𝐮𝐥 𝐈𝐬𝐥𝐚𝐦
+━━━━━━━━━━━━━━━━━━`,
         mentions: [{ tag: `@${adderName}`, id: adderID }],
         attachment: fs.createReadStream(outPath)
       };
     } else {
-      // 🟣 সাধারণ মেম্বার এড হলে
       message = {
         body:
 `━━━━━━━━━━━━━━━━━━
@@ -178,9 +171,8 @@ module.exports.run = async function({ api, event, Users }) {
 ━━━━━━━━━━━━━━━━━━
 ${groupRules}
 ━━━━━━━━━━━━━━━━━━
-╔═❖═❖═❖═❖═❖═❖═╗
-👑 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫: ${botOwnerName}  
-╚═❖═❖═❖═❖═❖═❖═╝`,
+👑 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫: 𝐒𝐚𝐢𝐟𝐮𝐥 𝐈𝐬𝐥𝐚𝐦
+━━━━━━━━━━━━━━━━━━`,
         mentions: [
           { tag: `@${userName}`, id: userID },
           { tag: `@${adderName}`, id: adderID }
@@ -193,12 +185,11 @@ ${groupRules}
       fs.unlinkSync(bgPath);
       fs.unlinkSync(avatarPath);
       fs.unlinkSync(adderAvatarPath);
-
       fs.unlinkSync(outPath);
     });
 
   } catch (error) {
     console.error("Joinnoti Error:", error);
-    api.sendMessage("⚙️ দুঃখিত, ওয়েলকাম মডিউলে ত্রুটি ঘটেছে ⚙️", threadID);
+    api.sendMessage("⚙️ দুঃখিত, ওয়েলকাম মডিউলে ত্রুটি ঘটেছে ⚙️", threadID);
   }
 };
