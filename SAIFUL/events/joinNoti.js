@@ -5,9 +5,9 @@ const Canvas = require("canvas");
 
 module.exports.config = {
   name: "joinnoti",
-  version: "2.6.0",
+  version: "2.8.0",
   credits: "Saiful Islam",
-  description: "Welcome system with Bangla captions, adder photo & thanks message (no time)",
+  description: "Welcome system with Bangla captions, adder photo & thanks message (stylish)",
   eventType: ["log:subscribe"],
   dependencies: {
     "canvas": "",
@@ -62,10 +62,10 @@ module.exports.run = async function({ api, event, Users }) {
     const background = await Canvas.loadImage(bgPath);
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-    // 🎉 নতুন ইউজারের প্রোফাইল (আরও উপরে)
+    // 🎉 নতুন ইউজারের প্রোফাইল উপরে
     const avatarSize = 180;
     const avatarX = (canvas.width - avatarSize) / 2;
-    const avatarY = 20; // 🔼 উপরে
+    const avatarY = 30;
 
     ctx.beginPath();
     ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 8, 0, Math.PI * 2);
@@ -81,24 +81,26 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
     ctx.restore();
 
-    // ✍️ নতুন মেম্বারের নাম, গ্রুপ নাম, মোট সদস্য
+    // ✍️ নতুন মেম্বারের নাম প্রোফাইলের নিচে
     ctx.textAlign = "center";
     ctx.font = "bold 36px Arial";
     ctx.fillStyle = "#FFB6C1";
-    ctx.fillText(userName, canvas.width / 2, avatarY + avatarSize + 20);
+    ctx.fillText(userName, canvas.width / 2, avatarY + avatarSize + 40);
 
+    // 🏷️ গ্রুপ নাম নতুন মেম্বারের নামের উপরে
     ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#00FFFF";
-    ctx.fillText(groupName, canvas.width / 2, avatarY + avatarSize + 60);
+    ctx.fillText(groupName, canvas.width / 2, avatarY + avatarSize - 20);
 
+    // 🔢 মোট সদস্য সংখ্যা নতুন মেম্বারের নামের নিচে
     ctx.font = "bold 26px Arial";
     ctx.fillStyle = "#FFFF00";
-    ctx.fillText(`মোট সদস্য: ${memberCount}`, canvas.width / 2, avatarY + avatarSize + 100);
+    ctx.fillText(`মোট সদস্য: ${memberCount}`, canvas.width / 2, avatarY + avatarSize + 80);
 
-    // 💖 Added by — এখন মোট সদস্যের ঠিক নিচে
+    // 💖 Added by — মোট সদস্যের নিচে
     const adderSize = 110;
-    const adderX = (canvas.width - adderSize) / 2;
-    const adderY = 330; // 🔼 উপরে
+    const adderX = canvas.width / 2 - 100; // বাম পাশে
+    const adderY = avatarY + avatarSize + 120;
 
     ctx.beginPath();
     ctx.arc(adderX + adderSize / 2, adderY + adderSize / 2, adderSize / 2 + 6, 0, Math.PI * 2);
@@ -114,9 +116,11 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.drawImage(adderAvatar, adderX, adderY, adderSize, adderSize);
     ctx.restore();
 
+    // Added by নাম তার পাশে
     ctx.font = "bold 24px Arial";
     ctx.fillStyle = "#FF69B4";
-    ctx.fillText(`👤 Added by ${adderName}`, canvas.width / 2, avatarY + avatarSize + 140);
+    ctx.textAlign = "left";
+    ctx.fillText(`👤 Added by ${adderName}`, adderX + adderSize + 15, adderY + adderSize / 2 + 8);
 
     // ⚙️ নিচে ডান পাশে বড় করে Bot Owner
     ctx.font = "bold 30px Arial";
@@ -165,6 +169,9 @@ module.exports.run = async function({ api, event, Users }) {
 🔢 তুমি এখন ${memberCount} নম্বর সদস্য  
 
 👤 এড করেছেন: @${adderName}  
+━━━━━━━━━━━━━━━━━━
+💖 ধন্যবাদ @${adderName} 💖  
+তোমার কারণে @${userName} এখন আমাদের সাথে! 🎊
 ━━━━━━━━━━━━━━━━━━
 ${groupRules}
 ━━━━━━━━━━━━━━━━━━
