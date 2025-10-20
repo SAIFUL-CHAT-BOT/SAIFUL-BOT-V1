@@ -5,9 +5,9 @@ const Canvas = require("canvas");
 
 module.exports.config = {
   name: "joinnoti",
-  version: "2.3.2",
+  version: "2.3.0",
   credits: "Saiful Islam",
-  description: "Welcome system with galaxy background & adder photo",
+  description: "Welcome system with Bangla captions, adder photo & thanks message (no time)",
   eventType: ["log:subscribe"],
   dependencies: {
     "canvas": "",
@@ -32,10 +32,8 @@ module.exports.run = async function({ api, event, Users }) {
   const adderID = event.author;
   const adderName = (await Users.getNameUser(adderID)) || "Unknown";
 
-  // 🌌 তোমার দেওয়া গ্যালাক্সি ব্যাকগ্রাউন্ড
-  const bgURL = "https://i.postimg.cc/SKm6s1p2/galaxy-bg.jpg"; // তোমার পাঠানো ছবির লিংক এখানে বসানো হয়েছে
-
-  // প্রোফাইল ছবি লিংক
+  // ব্যাকগ্রাউন্ড ও প্রোফাইল ছবি লিঙ্ক
+  const bgURL = "https://i.postimg.cc/SNGHZXpN/received-806294178818874.jpg";
   const avatarURL = `https://graph.facebook.com/${userID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
   const adderAvatarURL = `https://graph.facebook.com/${adderID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
 
@@ -120,11 +118,6 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.fillStyle = "#FF69B4";
     ctx.fillText(`👤 Added by ${adderName}`, canvas.width / 2, adderY + adderSize + 40);
 
-    // 👑 Bot Owner টেক্সট
-    ctx.font = "bold 22px Arial";
-    ctx.fillStyle = "#00FF99";
-    ctx.fillText(`👑 Bot Owner: Saiful Islam`, canvas.width / 2, canvas.height - 20);
-
     const finalBuffer = canvas.toBuffer();
     fs.writeFileSync(outPath, finalBuffer);
 
@@ -140,34 +133,45 @@ module.exports.run = async function({ api, event, Users }) {
     let message;
 
     if (userID == botID) {
+      // 🤖 বট এড হলে
       message = {
         body: 
 `🤖 𝐁𝐎𝐓 𝐎𝐍𝐋𝐈𝐍𝐄 🤖
 ━━━━━━━━━━━━━━━━━━
-ধন্যবাদ 💖 @${adderName}  
+ধন্যবাদ  💖 @${adderName}  
 আমাকে গ্রুপে এড করার জন্য 🥰 
+
+আমি এখন তুমাদের সাথে  একটিভ আছি 😎  
 
 🛠️ লিখুন: /help — সব কমান্ড দেখতে
 ━━━━━━━━━━━━━━━━━━
-👑 Bot Owner: Saiful Islam
-━━━━━━━━━━━━━━━━━━`,
+╔═❖═❖═❖═❖═❖═❖═╗
+👑 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫: 𝐒𝐚𝐢𝐟𝐮𝐥 𝐈𝐬𝐥𝐚𝐦  
+╚═❖═❖═❖═❖═❖═❖═╝
+`,
         mentions: [{ tag: `@${adderName}`, id: adderID }],
         attachment: fs.createReadStream(outPath)
       };
     } else {
+      // 🟣 সাধারণ মেম্বার এড হলে
       message = {
         body:
 `━━━━━━━━━━━━━━━━━━
 🎉 স্বাগতম @${userName}! 🎉
 
 🏷️ গ্রুপ: ${groupName} 
+
 🔢 তুমি এখন ${memberCount} নম্বর সদস্য
-👤 এড করেছেন: @${adderName}
+
+👤 এড করেছেন: @${adderName}  
+━━━━━━━━━━━━━━━━━━
+💖 ধন্যবাদ @${adderName} 💖 তোমার কারণে @${userName} এখন আমাদের সাথে!
 ━━━━━━━━━━━━━━━━━━
 ${groupRules}
 ━━━━━━━━━━━━━━━━━━
-👑 Bot Owner: Saiful Islam
-━━━━━━━━━━━━━━━━━━`,
+╔═❖═❖═❖═❖═❖═❖═╗
+👑 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫: 𝐒𝐚𝐢𝐟𝐮𝐥 𝐈𝐬𝐥𝐚𝐦  
+╚═❖═❖═❖═❖═❖═❖═╝`,
         mentions: [
           { tag: `@${userName}`, id: userID },
           { tag: `@${adderName}`, id: adderID }
