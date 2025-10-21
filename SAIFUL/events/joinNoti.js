@@ -5,9 +5,9 @@ const Canvas = require("canvas");
 
 module.exports.config = {
   name: "joinnoti",
-  version: "1.0.9",
-  credits: "Maria + rX Abdullah + Saiful Islam + বাংলা Caption Edit by GPT-5",
-  description: "Welcome system with Bangla captions for bot & members",
+  version: "2.1.0",
+  credits: "Maria + rX Abdullah + Saiful Islam + Bangla Caption Edit by GPT-5",
+  description: "Welcome system with adder photo (no time shown)",
   eventType: ["log:subscribe"],
   dependencies: {
     "canvas": "",
@@ -29,42 +29,44 @@ module.exports.run = async function({ api, event, Users }) {
   const groupName = threadInfo.threadName;
   const memberCount = threadInfo.participantIDs.length;
 
-  // কে এড করলো
+  // 🧍 কে এড করলো
   const adderID = event.author;
   const adderName = (await Users.getNameUser(adderID)) || "Unknown";
 
-  // সময়
-  const timeString = new Date().toLocaleString("bn-BD", { 
-    weekday: "long", 
-    hour: "2-digit", 
-    minute: "2-digit", 
-    hour12: true 
-  });
-
-  // ব্যাকগ্রাউন্ড + প্রোফাইল
+  // 🖼️ ব্যাকগ্রাউন্ড + প্রোফাইল
   const bgURL = "https://i.postimg.cc/rmkVVbsM/r07qxo-R-Download.jpg";
   const avatarURL = `https://graph.facebook.com/${userID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+  const adderAvatarURL = `https://graph.facebook.com/${adderID}/picture?width=256&height=256&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
 
   const cacheDir = path.join(__dirname, "cache");
   fs.ensureDirSync(cacheDir);
 
   const bgPath = path.join(cacheDir, "bg.jpg");
   const avatarPath = path.join(cacheDir, `avt_${userID}.png`);
+  const adderAvatarPath = path.join(cacheDir, `adder_${adderID}.png`);
   const outPath = path.join(cacheDir, `welcome_${userID}.png`);
 
   try {
-    // ইমেজ ডাউনলোড
-    const bgImg = (await axios.get(bgURL, { responseType: "arraybuffer" })).data;
-    fs.writeFileSync(bgPath, Buffer.from(bgImg));
-    const avatarImg = (await axios.get(avatarURL, { responseType: "arraybuffer" })).data;
-    fs.writeFileSync(avatarPath, Buffer.from(avatarImg));
+    // 📥 ইমেজ ডাউনলোড
+    const [bgImg, avatarImg, adderImg] = await Promise.all([
+      axios.get(bgURL, { responseType: "arraybuffer" }),
+      axios.get(avatarURL, { responseType: "arraybuffer" }),
+      axios.get(adderAvatarURL, { responseType: "arraybuffer" })
+    ]);
 
-    // ক্যানভাস
+    fs.writeFileSync(bgPath, Buffer.from(bgImg.data));
+    fs.writeFileSync(avatarPath, Buffer.from(avatarImg.data));
+    fs.writeFileSync(adderAvatarPath, Buffer.from(adderImg.data));
+
+    // 🖌️ ক্যানভাস
     const canvas = Canvas.createCanvas(800, 500);
     const ctx = canvas.getContext("2d");
+
+    // ব্যাকগ্রাউন্ড
     const background = await Canvas.loadImage(bgPath);
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
+    // 🎯 নতুন মেম্বার প্রোফাইল (মাঝখানে)
     const avatarSize = 180;
     const avatarX = (canvas.width - avatarSize) / 2;
     const avatarY = 100;
@@ -83,6 +85,26 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
     ctx.restore();
 
+    // ➕ Added By Photo (বাম পাশে ছোট)
+    const adderSize = 100;
+    const adderX = 50;
+    const adderY = 50;
+
+    ctx.beginPath();
+    ctx.arc(adderX + adderSize / 2, adderY + adderSize / 2, adderSize / 2 + 5, 0, Math.PI * 2, false);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+
+    const adderAvatar = await Canvas.loadImage(adderAvatarPath);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(adderX + adderSize / 2, adderY + adderSize / 2, adderSize / 2, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(adderAvatar, adderX, adderY, adderSize, adderSize);
+    ctx.restore();
+
+    // ✍️ টেক্সট
     ctx.textAlign = "center";
     ctx.font = "bold 36px Arial";
     ctx.fillStyle = "#FFB6C1";
@@ -98,12 +120,19 @@ module.exports.run = async function({ api, event, Users }) {
 
     ctx.font = "bold 22px Arial";
     ctx.fillStyle = "#FF69B4";
-    ctx.fillText(`Bot Owner: Saiful Islam 💻`, canvas.width / 2, canvas.height - 30);
+    ctx.fillText(`Bot Owner: Saiful Islam 💻`, canvas.width - 180, canvas.height - 30);
 
+    // ➕ Added By লেখা
+    ctx.textAlign = "left";
+    ctx.font = "bold 22px Arial";
+    ctx.fillStyle = "#00FF7F";
+    ctx.fillText(`Added by: ${adderName}`, adderX + 5, adderY + adderSize + 30);
+
+    // 📤 ফাইনাল ইমেজ
     const finalBuffer = canvas.toBuffer();
     fs.writeFileSync(outPath, finalBuffer);
 
-    // গ্রুপের নিয়ম
+    // 📜 রুলস
     const groupRules = 
 `📜 𝗚𝗥𝗢𝗨𝗣 𝗥𝗨𝗟𝗘𝗦 📜
 ১️⃣ সবাইকে সম্মান করবে 👥
@@ -115,7 +144,6 @@ module.exports.run = async function({ api, event, Users }) {
     let message;
 
     if (userID == botID) {
-      // 🟢 যখন বট এড হয়
       message = {
         body: 
 `🤖 𝐁𝐎𝐓 𝐎𝐍𝐋𝐈𝐍𝐄 🤖
@@ -123,14 +151,13 @@ module.exports.run = async function({ api, event, Users }) {
 ধন্যবাদ ভাই ${adderName} আমাকে গ্রুপে এড করার জন্য 💖  
 আমি এখন এই গ্রুপে একটিভ আছি 😎  
 
-🛠️ লিখুন:  help  — সব কমান্ড দেখতে  
+🛠️ লিখুন: help — সব কমান্ড দেখতে  
 👑 Bot Owner : Saiful Islam 💻
 ━━━━━━━━━━━━━━━━━━`,
         mentions: [{ tag: adderName, id: adderID }],
         attachment: fs.createReadStream(outPath)
       };
     } else {
-      // 🟣 যখন সাধারণ ইউজার এড হয়
       message = {
         body: 
 `━━━━━━━━━━━━━━━━━━
@@ -139,7 +166,6 @@ module.exports.run = async function({ api, event, Users }) {
 👋 স্বাগতম @${userName}!  
 🏷️ গ্রুপ : ${groupName}  
 🔢 তুমি এখন ${memberCount} নম্বর সদস্য 🎉  
-🕒 সময় : ${timeString}  
 👤 এড করেছেন : @${adderName}  
 ━━━━━━━━━━━━━━━━━━
 ${groupRules}
@@ -156,6 +182,7 @@ ${groupRules}
     api.sendMessage(message, threadID, () => {
       fs.unlinkSync(bgPath);
       fs.unlinkSync(avatarPath);
+      fs.unlinkSync(adderAvatarPath);
       fs.unlinkSync(outPath);
     });
 
