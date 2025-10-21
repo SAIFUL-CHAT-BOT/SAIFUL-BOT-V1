@@ -5,9 +5,9 @@ const Canvas = require("canvas");
 
 module.exports.config = {
   name: "joinnoti",
-  version: "2.1.0",
-  credits: "Maria + rX Abdullah + Saiful Islam + Bangla Caption Edit by GPT-5",
-  description: "Welcome system with adder photo (no time shown)",
+  version: "2.2.0",
+  credits: "Maria + rX Abdullah + Saiful Islam + বাংলা Font Fix by GPT-5",
+  description: "Welcome system with Bangla name font support",
   eventType: ["log:subscribe"],
   dependencies: {
     "canvas": "",
@@ -29,11 +29,9 @@ module.exports.run = async function({ api, event, Users }) {
   const groupName = threadInfo.threadName;
   const memberCount = threadInfo.participantIDs.length;
 
-  // 🧍 কে এড করলো
   const adderID = event.author;
   const adderName = (await Users.getNameUser(adderID)) || "Unknown";
 
-  // 🖼️ ব্যাকগ্রাউন্ড + প্রোফাইল
   const bgURL = "https://i.postimg.cc/rmkVVbsM/r07qxo-R-Download.jpg";
   const avatarURL = `https://graph.facebook.com/${userID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
   const adderAvatarURL = `https://graph.facebook.com/${adderID}/picture?width=256&height=256&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
@@ -45,6 +43,18 @@ module.exports.run = async function({ api, event, Users }) {
   const avatarPath = path.join(cacheDir, `avt_${userID}.png`);
   const adderAvatarPath = path.join(cacheDir, `adder_${adderID}.png`);
   const outPath = path.join(cacheDir, `welcome_${userID}.png`);
+
+  // 🪶 বাংলা ফন্ট রেজিস্টার
+  try {
+    const fontPath = path.join(__dirname, "fonts", "NotoSansBengali-Regular.ttf");
+    if (fs.existsSync(fontPath)) {
+      Canvas.registerFont(fontPath, { family: "BanglaFont" });
+    } else {
+      console.warn("⚠️ বাংলা ফন্ট (NotoSansBengali-Regular.ttf) পাওয়া যায়নি! fonts ফোল্ডারে দিয়ে দাও।");
+    }
+  } catch (e) {
+    console.log("Font load error:", e);
+  }
 
   try {
     // 📥 ইমেজ ডাউনলোড
@@ -58,7 +68,6 @@ module.exports.run = async function({ api, event, Users }) {
     fs.writeFileSync(avatarPath, Buffer.from(avatarImg.data));
     fs.writeFileSync(adderAvatarPath, Buffer.from(adderImg.data));
 
-    // 🖌️ ক্যানভাস
     const canvas = Canvas.createCanvas(800, 500);
     const ctx = canvas.getContext("2d");
 
@@ -66,7 +75,7 @@ module.exports.run = async function({ api, event, Users }) {
     const background = await Canvas.loadImage(bgPath);
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-    // 🎯 নতুন মেম্বার প্রোফাইল (মাঝখানে)
+    // নতুন মেম্বার প্রোফাইল
     const avatarSize = 180;
     const avatarX = (canvas.width - avatarSize) / 2;
     const avatarY = 100;
@@ -85,7 +94,7 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
     ctx.restore();
 
-    // ➕ Added By Photo (বাম পাশে ছোট)
+    // Added By Photo
     const adderSize = 100;
     const adderX = 50;
     const adderY = 50;
@@ -104,35 +113,33 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.drawImage(adderAvatar, adderX, adderY, adderSize, adderSize);
     ctx.restore();
 
-    // ✍️ টেক্সট
+    // টেক্সট অংশ (বাংলা ফন্টে)
     ctx.textAlign = "center";
-    ctx.font = "bold 36px Arial";
+    ctx.font = "bold 36px BanglaFont";
     ctx.fillStyle = "#FFB6C1";
     ctx.fillText(userName, canvas.width / 2, avatarY + avatarSize + 50);
 
-    ctx.font = "bold 30px Arial";
+    ctx.font = "bold 30px BanglaFont";
     ctx.fillStyle = "#00FFFF";
     ctx.fillText(groupName, canvas.width / 2, avatarY + avatarSize + 90);
 
-    ctx.font = "bold 28px Arial";
+    ctx.font = "bold 28px BanglaFont";
     ctx.fillStyle = "#FFFF00";
     ctx.fillText(`মোট সদস্য: ${memberCount}`, canvas.width / 2, avatarY + avatarSize + 130);
 
-    ctx.font = "bold 22px Arial";
+    ctx.font = "bold 22px BanglaFont";
     ctx.fillStyle = "#FF69B4";
     ctx.fillText(`Bot Owner: Saiful Islam 💻`, canvas.width - 180, canvas.height - 30);
 
-    // ➕ Added By লেখা
     ctx.textAlign = "left";
-    ctx.font = "bold 22px Arial";
+    ctx.font = "bold 22px BanglaFont";
     ctx.fillStyle = "#00FF7F";
     ctx.fillText(`Added by: ${adderName}`, adderX + 5, adderY + adderSize + 30);
 
-    // 📤 ফাইনাল ইমেজ
+    // ইমেজ আউটপুট
     const finalBuffer = canvas.toBuffer();
     fs.writeFileSync(outPath, finalBuffer);
 
-    // 📜 রুলস
     const groupRules = 
 `📜 𝗚𝗥𝗢𝗨𝗣 𝗥𝗨𝗟𝗘𝗦 📜
 ১️⃣ সবাইকে সম্মান করবে 👥
