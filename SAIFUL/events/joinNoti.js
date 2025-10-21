@@ -5,9 +5,9 @@ const Canvas = require("canvas");
 
 module.exports.config = {
   name: "joinnoti",
-  version: "1.5.0",
+  version: "1.8.0",
   credits: "Maria + rX Abdullah + Saiful Islam + GPT-5 Layout Fix",
-  description: "Welcome system showing only new member avatar, Bot Owner at bottom center",
+  description: "Welcome system showing only new member avatar & adder name, Bot Owner at bottom center",
   eventType: ["log:subscribe"],
   dependencies: {
     "canvas": "",
@@ -23,7 +23,6 @@ module.exports.run = async function ({ api, event, Users }) {
 
   const userID = added.userFbId;
   const userName = added.fullName;
-  const botID = api.getCurrentUserID();
   const threadInfo = await api.getThreadInfo(threadID);
   const groupName = threadInfo.threadName;
   const memberCount = threadInfo.participantIDs.length;
@@ -80,15 +79,20 @@ module.exports.run = async function ({ api, event, Users }) {
     ctx.fillStyle = "#FFD700";
     ctx.fillText(userName, canvas.width / 2, userY + userSize + 50);
 
+    // অ্যাডারের নাম লেখা (ছবি নয়)
+    ctx.font = "bold 28px Arial";
+    ctx.fillStyle = "#00FF00";
+    ctx.fillText(`Adder: ${adderName}`, canvas.width / 2, userY + userSize + 90);
+
     // গ্রুপ নাম
     ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#00FFFF";
-    ctx.fillText(groupName, canvas.width / 2, userY + userSize + 100);
+    ctx.fillText(groupName, canvas.width / 2, userY + userSize + 140);
 
     // মোট সদস্য সংখ্যা
     ctx.font = "bold 28px Arial";
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillText(`মোট সদস্য: ${memberCount}`, canvas.width / 2, userY + userSize + 150);
+    ctx.fillText(`মোট সদস্য: ${memberCount}`, canvas.width / 2, userY + userSize + 190);
 
     // Bot Owner নিচে সেন্টারে
     ctx.font = "bold 28px Arial";
