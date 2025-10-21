@@ -78,20 +78,20 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
     ctx.restore();
 
-    currentY += avatarSize + 20;
-
-    // গ্রুপ নাম
-    ctx.textAlign = "center";
-    ctx.font = "bold 30px Arial";
-    ctx.fillStyle = "#00FFFF";
-    ctx.fillText(groupName, canvas.width / 2, currentY);
-
     currentY += 40;
 
     // নতুন মেম্বারের নাম
     ctx.font = "bold 36px Arial";
     ctx.fillStyle = "#FFB6C1";
     ctx.fillText(userName, canvas.width / 2, currentY);
+
+    currentY += avatarSize + 20;
+
+    // গ্রুপ নাম
+    ctx.textAlign = "center";
+    ctx.font = "bold 30px Arial";
+    ctx.fillStyle = "#00FFFF";
+    ctx.fillText(groupName, canvas.width /
 
     currentY += 50;
 
