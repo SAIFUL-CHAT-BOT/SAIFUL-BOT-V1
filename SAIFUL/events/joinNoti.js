@@ -5,9 +5,9 @@ const Canvas = require("canvas");
 
 module.exports.config = {
   name: "joinnoti",
-  version: "1.6.0",
+  version: "1.5.0",
   credits: "Maria + rX Abdullah + Saiful Islam + GPT-5 Layout Fix",
-  description: "Welcome system showing only new member avatar, Bot Owner at bottom center bold",
+  description: "Welcome system showing only new member avatar, Bot Owner at bottom center",
   eventType: ["log:subscribe"],
   dependencies: {
     "canvas": "",
@@ -31,7 +31,6 @@ module.exports.run = async function ({ api, event, Users }) {
   const adderID = event.author;
   const adderName = (await Users.getNameUser(adderID)) || "Unknown";
 
-  // ব্যাকগ্রাউন্ড + নতুন মেম্বার অ্যাভাটার
   const bgURL = "https://i.postimg.cc/rmkVVbsM/r07qxo-R-Download.jpg";
   const newUserAvatar = `https://graph.facebook.com/${userID}/picture?width=512&height=512`;
 
@@ -43,7 +42,7 @@ module.exports.run = async function ({ api, event, Users }) {
   const outPath = path.join(cacheDir, `welcome_${userID}.png`);
 
   try {
-    // ইমেজ ডাউনলোড
+    // 🖼️ ইমেজ ডাউনলোড
     const bgImg = (await axios.get(bgURL, { responseType: "arraybuffer" })).data;
     const userImg = (await axios.get(newUserAvatar, { responseType: "arraybuffer" })).data;
 
@@ -56,7 +55,7 @@ module.exports.run = async function ({ api, event, Users }) {
     const background = await Canvas.loadImage(bgPath);
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-    // Helper ফাংশন: রাউন্ড ইমেজ
+    // Helper ফাংশন রাউন্ড ইমেজের জন্য
     const drawRoundImage = async (path, x, y, size) => {
       const img = await Canvas.loadImage(path);
       ctx.save();
@@ -91,16 +90,15 @@ module.exports.run = async function ({ api, event, Users }) {
     ctx.fillStyle = "#FFFFFF";
     ctx.fillText(`মোট সদস্য: ${memberCount}`, canvas.width / 2, userY + userSize + 150);
 
-    // Bot Owner নাম - নিচে, মাঝখানে, মোটা অক্ষরে
-    ctx.font = "bold 40px Arial Black";
-    ctx.fillStyle = "#FF007F";
-    ctx.fillText("👑 BOT OWNER: SAIFUL ISLAM 💻", canvas.width / 2, canvas.height - 30);
+    // Bot Owner নিচে সেন্টারে
+    ctx.font = "bold 28px Arial";
+    ctx.fillStyle = "#FF1493";
+    ctx.fillText("Bot Owner: Saiful Islam 💻", canvas.width / 2, canvas.height - 30);
 
     // চূড়ান্ত ইমেজ সেভ
     const finalBuffer = canvas.toBuffer();
     fs.writeFileSync(outPath, finalBuffer);
 
-    // Group Rules
     const groupRules =
 `📜 𝗚𝗥𝗢𝗨𝗣 𝗥𝗨𝗟𝗘𝗦 📜
 ১️⃣ সবাইকে সম্মান করবে 👥  
@@ -109,7 +107,7 @@ module.exports.run = async function ({ api, event, Users }) {
 ৪️⃣ ভুয়া তথ্য বা গুজব নয় ❌  
 ৫️⃣ অ্যাডমিনের সিদ্ধান্তই চূড়ান্ত 👑`;
 
-    const message = {
+    let message = {
       body: `━━━━━━━━━━━━━━━━━━
 🎉 স্বাগতম @${userName}! 🎉
 ━━━━━━━━━━━━━━━━━━
@@ -122,7 +120,7 @@ module.exports.run = async function ({ api, event, Users }) {
 ━━━━━━━━━━━━━━━━━━
 ${groupRules}
 ━━━━━━━━━━━━━━━━━━
-👑 BOT OWNER: SAIFUL ISLAM 💻
+👑 Bot Owner: Saiful Islam 💻
 ━━━━━━━━━━━━━━━━━━`,
       mentions: [
         { tag: `@${userName}`, id: userID },
